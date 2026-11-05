@@ -3,7 +3,10 @@
 #include <atomic>
 #include <filesystem>
 #include <mutex>
-#include <windows.h> // Windows native key injection compatibility fallback
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #include <pl/Mod.hpp>
 #include <pl/Input.hpp>
@@ -14,9 +17,9 @@ namespace {
 std::once_flag gInputCallbackOnce;
 std::atomic_bool gInputCallbackEnabled{false};
 
-// Vanilla Core Control Simulation via Windows Thread Overlay Trigger
-// Minecraft core window directly foreground me rehte hue is standard call ko native mapping me change karta h
-void sendVanillaClick(DWORD downFlag, DWORD upFlag) {
+// Cross-Platform compilation trigger for GitHub Linux Runners
+void sendVanillaClick(unsigned long downFlag, unsigned long upFlag) {
+#ifdef _WIN32
     INPUT input = { 0 };
     input.type = INPUT_MOUSE;
     
@@ -24,9 +27,10 @@ void sendVanillaClick(DWORD downFlag, DWORD upFlag) {
     input.mi.dwFlags = downFlag;
     SendInput(1, &input, sizeof(INPUT));
     
-    // Release instantly for engine registration frame latency
+    // Release instantly for engine frame registration
     input.mi.dwFlags = upFlag;
     SendInput(1, &input, sizeof(INPUT));
+#endif
 }
 }
 
@@ -97,13 +101,17 @@ bool ClangeMeMod::enable() {
                 // Numpad 9 (keyCode == 153) -> Exact Inbuilt Attack/Destroy Simulation
                 if (event.keyCode == 153 && event.isKeyDown) {
                     ClangeMeMod::instance().getSelf().getLogger().info("Numpad 9: Simulating Attack/Destroy Action");
-                    sendVanillaClick(MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP);
+#ifdef _WIN32
+                    sendVanillaClick(0x0002, 0x0004); // MOUSEEVENTF_LEFTDOWN & LEFTUP
+#endif
                 }
 
                 // Numpad 8 (keyCode == 152) -> Exact Inbuilt Place/Use Simulation
                 if (event.keyCode == 152 && event.isKeyDown) {
                     ClangeMeMod::instance().getSelf().getLogger().info("Numpad 8: Simulating Place/Use Action");
-                    sendVanillaClick(MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP);
+#ifdef _WIN32
+                    sendVanillaClick(0x0008, 0x0010); // MOUSEEVENTF_RIGHTDOWN & RIGHTUP
+#endif
                 }
 
                 return false;
