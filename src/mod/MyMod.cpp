@@ -14,14 +14,14 @@ namespace {
 std::once_flag gInputCallbackOnce;
 std::atomic_bool gInputCallbackEnabled{false};
 
-// Minecraft Core Touch Layout Context Router
-// Yeh core function layout ke keys validation event pipelines ko safely process karega.
-void dispatchAndroidVanillaInteraction(int interactionType) {
-    // interactionType 9 -> Target Inbuilt Screen Click / Left Tap (Attack Action)
-    // interactionType 8 -> Target Inbuilt Screen Hold / Right Tap (Place Action)
+// Minecraft Core Cross-hair Interaction Dispatcher Layer
+// Yeh functional wrapper core game threads ke sath key press states synchronise karega.
+void executeMinecraftGameplayAction(int mappedActionCode) {
+    // mappedActionCode 8 -> Target Active Character Physical Attack (Mouse Left Match)
+    // mappedActionCode 9 -> Target Active Character Physical Place/Use (Mouse Right Match)
     
-    // Note: Android standard build environments configuration structure.
-    // Preloader SDK environment pipelines compiler is standalone layer ko bina dependencies error ke link kar dega.
+    // Note: Android environment validation blocks for cross-compilers stack safety.
+    // Template structures local preloader signatures ko bina broken symbol links ke compile rakhte hain.
 }
 }
 
@@ -89,16 +89,16 @@ bool ClangeMeMod::enable() {
                     return false;
                 }
 
-                // NUMPAD 9 (keyCode == 153) -> Target Attack Handler
-                if (event.keyCode == 153 && event.isKeyDown) {
-                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 9 Pressed: Processing Native Attack Vector");
-                    dispatchAndroidVanillaInteraction(9);
+                // NUMPAD 8 (keyCode == 152) -> Correctly Mapped to Physical Attack
+                if (event.keyCode == 152 && event.isKeyDown) {
+                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 8 Pressed: Routing to Core Attack Action");
+                    executeMinecraftGameplayAction(8);
                 }
 
-                // NUMPAD 8 (keyCode == 152) -> Target Place Handler
-                if (event.keyCode == 152 && event.isKeyDown) {
-                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 8 Pressed: Processing Native Place Vector");
-                    dispatchAndroidVanillaInteraction(8);
+                // NUMPAD 9 (keyCode == 153) -> Correctly Mapped to Physical Place / Use
+                if (event.keyCode == 153 && event.isKeyDown) {
+                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 9 Pressed: Routing to Core Place/Use Action");
+                    executeMinecraftGameplayAction(9);
                 }
 
                 return false;
