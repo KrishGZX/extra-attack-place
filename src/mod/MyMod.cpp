@@ -3,14 +3,10 @@
 #include <atomic>
 #include <filesystem>
 #include <mutex>
+#include <windows.h> // Windows native key injection compatibility fallback
 
 #include <pl/Mod.hpp>
 #include <pl/Input.hpp>
-
-// Bedrock Engine Ke Inbuilt Actions Ke Liye Headers (Levi Core Environment)
-#include <llapi/mc/Player.hh>
-#include <llapi/mc/Level.hh>
-#include <llapi/mc/LevelSoundEventUtils.hh>
 
 namespace clange_me {
 
@@ -18,35 +14,19 @@ namespace {
 std::once_flag gInputCallbackOnce;
 std::atomic_bool gInputCallbackEnabled{false};
 
-// Custom Inbuilt Action Execution Module
-void executeVanillaPlayerAction(int actionType) {
-    // Game ke active local session player ko check karein
-    auto players = ll::Level::getAllPlayers();
-    if (players.empty()) return;
+// Vanilla Core Control Simulation via Windows Thread Overlay Trigger
+// Minecraft core window directly foreground me rehte hue is standard call ko native mapping me change karta h
+void sendVanillaClick(DWORD downFlag, DWORD upFlag) {
+    INPUT input = { 0 };
+    input.type = INPUT_MOUSE;
     
-    Player* localPlayer = players[0]; // Client level local player reference
-    if (!localPlayer) return;
-
-    if (actionType == 9) {
-        // --- EXACT INBUILT ATTACK & DESTROY REALTIME COPY ---
-        // 1. Hand swing action simulate karein
-        localPlayer->runcmd("playanimation @s animation.player.attack.rotations");
-        
-        // 2. Raycast simulation engine trace blocks / entities ke liye
-        // Bedrock internal command execution system directly vanilla interaction context check karta h
-        localPlayer->runcmd("execute at @s anchoring eyes run setblock ^ ^ ^2 air destroy");
-        
-        // Alternative hook agar aap direct target trace trigger karna chahein:
-        // game_level->getHitResult() ya localPlayer->attack() direct hooks provide karte hain.
-    } 
-    else if (actionType == 8) {
-        // --- EXACT INBUILT PLACE & USE REALTIME COPY ---
-        // 1. Hand item block interaction use triggers
-        localPlayer->runcmd("playanimation @s animation.player.use_item");
-        
-        // 2. Right click validation fallback sequence
-        // Kyunki ye direct engine state hooks se attached hai, custom mapping client vectors map karegi.
-    }
+    // Press down
+    input.mi.dwFlags = downFlag;
+    SendInput(1, &input, sizeof(INPUT));
+    
+    // Release instantly for engine registration frame latency
+    input.mi.dwFlags = upFlag;
+    SendInput(1, &input, sizeof(INPUT));
 }
 }
 
@@ -114,16 +94,16 @@ bool ClangeMeMod::enable() {
                     return false;
                 }
 
-                // Numpad 9 Verification aur Direct Vanilla Trigger Bindings
+                // Numpad 9 (keyCode == 153) -> Exact Inbuilt Attack/Destroy Simulation
                 if (event.keyCode == 153 && event.isKeyDown) {
-                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 9 Pressed: Triggering Inbuilt Attack");
-                    executeVanillaPlayerAction(9);
+                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 9: Simulating Attack/Destroy Action");
+                    sendVanillaClick(MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP);
                 }
 
-                // Numpad 8 Verification aur Direct Vanilla Trigger Bindings
+                // Numpad 8 (keyCode == 152) -> Exact Inbuilt Place/Use Simulation
                 if (event.keyCode == 152 && event.isKeyDown) {
-                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 8 Pressed: Triggering Inbuilt Place");
-                    executeVanillaPlayerAction(8);
+                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 8: Simulating Place/Use Action");
+                    sendVanillaClick(MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP);
                 }
 
                 return false;
