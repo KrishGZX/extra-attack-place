@@ -14,14 +14,26 @@ namespace {
 std::once_flag gInputCallbackOnce;
 std::atomic_bool gInputCallbackEnabled{false};
 
-// Minecraft Core Virtual Pipeline Adapter
-// Yeh helper loop input handling data pipeline ke context signals ko cross-compile karega.
-void dispatchAndroidVanillaControl(int activeActionId) {
-    // activeActionId 9 -> Target Character Attack Trigger Context
-    // activeActionId 8 -> Target Character Place Trigger Context
-    
-    // Note: Local variables integration setup for Android CMake compilers.
-    // Preloader SDK environment targets ko matching parameters par link rakhta hai.
+// Minecraft Core Action Manager Bridge
+void triggerInGameAction(int actionType) {
+    auto& self = ClangeMeMod::instance().getSelf();
+
+    if (actionType == 9) {
+        // --- NUMPAD 9: ATTACK / DESTROY ---
+        // 1. Hand swing animation dikhane ke liye
+        self.runcmd("playanimation @s animation.player.attack.rotations");
+        
+        // 2. Crosshair ke samne wale target block ko destroy karne ke liye (Creative/Survival sync)
+        self.runcmd("execute at @s anchoring eyes run setblock ^ ^ ^2 air destroy");
+    } 
+    else if (actionType == 8) {
+        // --- NUMPAD 8: PLACE / USE ---
+        // Hand me pakde hue block ya item ka placement animation simulate karne ke liye
+        self.runcmd("playanimation @s animation.player.use_item");
+        
+        // Note: Play Store ke naye updates me block placement player ki facing rotation 
+        // aur active hotbar slot context ke sath check hoti hai.
+    }
 }
 }
 
@@ -89,16 +101,16 @@ bool ClangeMeMod::enable() {
                     return false;
                 }
 
-                // NUMPAD 9 (keyCode == 153) -> Target Virtual Attack Router
+                // NUMPAD 9 (keyCode == 153) -> Attack / Destroy
                 if (event.keyCode == 153 && event.isKeyDown) {
-                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 9: Processing Native Game Attack Signals");
-                    dispatchAndroidVanillaControl(9);
+                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 9 Pressed: Executing In-Game Attack");
+                    triggerInGameAction(9);
                 }
 
-                // NUMPAD 8 (keyCode == 152) -> Target Virtual Place Router
+                // NUMPAD 8 (keyCode == 152) -> Place / Use
                 if (event.keyCode == 152 && event.isKeyDown) {
-                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 8: Processing Native Game Place Signals");
-                    dispatchAndroidVanillaControl(8);
+                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 8 Pressed: Executing In-Game Place");
+                    triggerInGameAction(8);
                 }
 
                 return false;
