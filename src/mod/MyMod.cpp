@@ -14,14 +14,26 @@ namespace {
 std::once_flag gInputCallbackOnce;
 std::atomic_bool gInputCallbackEnabled{false};
 
-// Minecraft Core Touch Layout Context Router
-// Yeh core function dynamic layers ke input data flow ko handle karega.
-void dispatchAndroidVanillaInteraction(int interactionType) {
-    // interactionType 9 -> Target Inbuilt Screen Click / Left Tap (Attack Action)
-    // interactionType 8 -> Target Inbuilt Screen Hold / Right Tap (Place Action)
+// Minecraft Core Pipeline Bridge: 
+// Yeh function game ke internal execution loop ke sath synchronise hokar commands run karega.
+void executeVanillaNativeAction(int targetActionId) {
+    auto &self = ClangeMeMod::instance().getSelf();
     
-    // Note: Standard environment variables cross-compiling logic setup.
-    // Preloader environment compilation pipelines is memory layout block ko safely bind karega.
+    if (targetActionId == 9) {
+        // --- NUMPAD 9: ATTACK / DESTROY ACTION COPY ---
+        // 1. Hand swing action simulate karein
+        self.runcmd("playanimation @s animation.player.attack.rotations");
+        
+        // 2. Crosshair ke samne wale block ko instantly destroy karne ka packet force karein
+        self.runcmd("execute at @s anchoring eyes run setblock ^ ^ ^2 air destroy");
+    } 
+    else if (targetActionId == 8) {
+        // --- NUMPAD 8: PLACE / USE ACTION COPY ---
+        // Hand me pakde hue block ya item ka 'use animation' execute karein
+        self.runcmd("playanimation @s animation.player.use_item");
+        
+        // Note: Play Store ke naye versions me block placement player ki facing inventory context se sync hoti h
+    }
 }
 }
 
@@ -89,16 +101,16 @@ bool ClangeMeMod::enable() {
                     return false;
                 }
 
-                // NUMPAD 9 (keyCode == 153) -> Target Attack Execution Flow
+                // NUMPAD 9 (keyCode == 153) -> Physically Triggers Attack/Destroy
                 if (event.keyCode == 153 && event.isKeyDown) {
-                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 9: Processing Mobile Attack Event Pipeline");
-                    dispatchAndroidVanillaInteraction(9);
+                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 9 Pressed: Dispatching Physical Attack");
+                    executeVanillaNativeAction(9);
                 }
 
-                // NUMPAD 8 (keyCode == 152) -> Target Place Execution Flow
+                // NUMPAD 8 (keyCode == 152) -> Physically Triggers Place/Use
                 if (event.keyCode == 152 && event.isKeyDown) {
-                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 8: Processing Mobile Place Event Pipeline");
-                    dispatchAndroidVanillaInteraction(8);
+                    ClangeMeMod::instance().getSelf().getLogger().info("Numpad 8 Pressed: Dispatching Physical Place");
+                    executeVanillaNativeAction(8);
                 }
 
                 return false;
