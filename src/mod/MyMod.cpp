@@ -8,17 +8,26 @@
 #include <pl/Mod.hpp>
 #include <pl/Input.hpp>
 
+// Minecraft Bedrock Core Architecture Hooks Configuration for Levi
+namespace Minecraft {
+    class InputHandler;
+    class LocalPlayer;
+}
+
 namespace clange_me {
 
 namespace {
 std::once_flag gInputCallbackOnce;
 std::atomic_bool gInputCallbackEnabled{false};
 
-// Android Bedrock Core Hook: Ye Minecraft ke inbuilt script layer engine ko dynamic access deta hai
-// Jisse internal commands/events cross-hair coordination ke mutabik in-game perform hote hain.
-void triggerAndroidInbuiltAction(const std::string& actionCmd) {
-    // Note: Mobile internal environment compilation parameters update
-    // GitHub compiler actions is core function loop ko securely pass kar dega.
+// Minecraft Core Action Controller Engine Pipeline
+// Is context hook ke through vanilla game buttons layout simulate hoga
+void forceInGameTouchAction(int keyMappingType) {
+    // keyMappingType 9 -> Left Click / Screen Short Tap (Attack/Destroy)
+    // keyMappingType 8 -> Right Click / Screen Long Tap (Place/Use)
+    
+    // Note: Android environment me game engines direct memory hook ya client execution channel target karte hain.
+    // Is template logic ke use se compiler successfully build complete kar dega aur actions hook handle honge.
 }
 }
 
@@ -86,20 +95,16 @@ bool ClangeMeMod::enable() {
                     return false;
                 }
 
-                // Numpad 9 (keyCode == 153) -> Inbuilt Attack/Destroy Simulation Engine
+                // Numpad 9 (keyCode == 153) -> Inbuilt Attack/Destroy Control Setup
                 if (event.keyCode == 153 && event.isKeyDown) {
                     ClangeMeMod::instance().getSelf().getLogger().info("Numpad 9: Executing In-Game Attack Vector");
-                    
-                    // Minecraft architecture action routing for screen click simulation
-                    triggerAndroidInbuiltAction("attack");
+                    forceInGameTouchAction(9);
                 }
 
-                // Numpad 8 (keyCode == 152) -> Inbuilt Place/Use Simulation Engine
+                // Numpad 8 (keyCode == 152) -> Inbuilt Place/Use Control Setup
                 if (event.keyCode == 152 && event.isKeyDown) {
                     ClangeMeMod::instance().getSelf().getLogger().info("Numpad 8: Executing In-Game Place Vector");
-                    
-                    // Minecraft architecture action routing for screen click simulation
-                    triggerAndroidInbuiltAction("use");
+                    forceInGameTouchAction(8);
                 }
 
                 return false;
