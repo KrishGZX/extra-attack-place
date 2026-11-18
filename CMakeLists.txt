@@ -1,3 +1,4 @@
+
 cmake_minimum_required(VERSION 3.22)
 
 project(levilauncher_android_mod_template LANGUAGES CXX)
@@ -143,8 +144,11 @@ target_link_options(${MOD_LIBRARY_NAME}
 )
 
 find_library(log-lib log REQUIRED)
+find_library(dl-lib dl REQUIRED)
+
 target_link_libraries(${MOD_LIBRARY_NAME} PRIVATE
     ${log-lib}
+    ${dl-lib}
     nlohmann_json::nlohmann_json
     Boost::pfr
     magic_enum::magic_enum
